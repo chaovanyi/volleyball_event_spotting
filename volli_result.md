@@ -131,8 +131,8 @@ reported: **`best_spatial.pt`** (headline localization) and **`best.pt`** (headl
 | E4 — **joint**, FPN4, squished input | 224×224 (squished) | 0.725 | 0.907 | — |
 | E5 — frozen-on-strong-backbone, FPN4 | 224×224 (squished) | 0.706 | 0.907 | — |
 | **E3 — joint, FPN4, aspect-correct** | 320×180 (16:9) | **0.790** | **0.906** | **0.940** |
-| E6 — E3 + ball-presence / off-frame handling | 320×180 (16:9) | _running_ | _running_ | _running_ |
-| E7 — E6 + native resolution | 398×224 (16:9) | _queued_ | _queued_ | _queued_ |
+| E6 — E3 + ball-presence / off-frame handling | 320×180 (16:9) | 0.7875 | 0.9048 | 0.9440 |
+| E7 — E6 + native resolution | 398×224 (16:9) | _0.769 (running, ep28/50)_ | _0.915_ | _0.944_ |
 | Tennis reference (Exp10, FPN3) | — | 0.775 | 0.952 | — |
 | Tennis reference (Exp11, FPN4) | — | 0.829 | 0.943 | — |
 
@@ -150,6 +150,15 @@ the saved checkpoints once the GPU is free.*
 - Spatial localization now **exceeds the tennis FPN3 baseline (0.775)** and is within
   ~0.04 of the tennis FPN4 best (0.829); median ball error ≈ 5.1 px (tennis 5.7 px / 4.1 px).
 - Temporal Macro-F1 (0.906) still trails tennis (0.94–0.95) — the next lever.
+- **E6 (ball-presence / off-frame handling): neutral on Spatial F1** (0.7875 ≈ E3's 0.790).
+  Absent-ball events are rare *at event frames* (~26 of ~3150), so the event-conditioned
+  metric can't reward abstention; the presence head never learned a usable present/absent
+  split (correct-abstain stayed 0). It still cleans up per-frame ball tracking in the viz,
+  which this metric doesn't measure. Conclusion: presence is a dead end for Spatial F1.
+- **E7 (native 398×224 resolution): lifts temporal, spatial competitive** (in progress).
+  Temporal Macro reached **0.915** (best of all runs) and Micro **0.944**; spatial is on par
+  with E3 so far (best 0.769 @ep24, still climbing, oscillates 0.63↔0.77). Higher resolution
+  clearly helps event detection; its spatial verdict awaits the run's later-epoch peak.
 
 **Answer to "why did the method work for tennis but not volleyball on spatial?"** Two
 volley-specific issues, both now fixed: (1) training diverged before the backbone could
